@@ -1,12 +1,16 @@
-const pubnub = require("pubnub")({
+const PubNub = require("pubnub")
+const pubnub = new PubNub({
     'ssl': true,  // <- enable TLS Tunneling over TCP
-    'publish_key': process.env.PUBNUB_PUBLISH_KEY
+    'publishKey': process.env.PUBNUB_PUBLISH_KEY,
+    'subscribeKey': process.env.PUBNUB_SUBSCRIBE_KEY
 });
 const uuidv1 = require('uuid/v1')
 
+let msg = uuidv1()
+console.log(`Message: ${msg}`)
 pubnub.publish({
     'channel': 'hello_world',
-    'message': uuidv1(),
-    callback  : function(e) { console.log( "scheduled.js sent message!", e ); },
-    error     : function(e) { console.log( "scheduled.js failed to send message!", e ); }
+    'message': msg
+}, (status, response) => {
+    console.log(status, response)
 })

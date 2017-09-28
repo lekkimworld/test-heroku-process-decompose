@@ -1,15 +1,19 @@
 const redisClient = require('redis').createClient(process.env.REDIS_URL);
-const pubnub = require("pubnub")({
-    'ssl': true,
-    'subscribe_key': process.env.PUBNUB_SUBSCRIBE_KEY
+const PubNub = require("pubnub")
+const pubnub = new PubNub({
+    'ssl': true,   
+    'publishKey': process.env.PUBNUB_PUBLISH_KEY,
+    'subscribeKey': process.env.PUBNUB_SUBSCRIBE_KEY
 });
 
-pubnub.subscribe({
-    channel  : "hello_world",
-    callback : function(message) {
-        console.log(`worker.js received message: ${message}`);
-        let arr = redisClient.get('array') || []
-        arr.push(message)
-        redisClient.set('array', arr)
+pubnub.addListener({
+    'message': (msg) => {
+        console.log(`worker.js received message`, msg);
+        redisClient.set('uuid', msg.message, (err, reply) => {
+            console.log('saved value in redis')
+        })
     }
+})
+pubnub.subscribe({
+    channels: ["hello_world"]
 });
